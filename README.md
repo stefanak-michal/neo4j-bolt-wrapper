@@ -47,3 +47,7 @@ Standard behaviour on error is trigger_error with E_USER_ERROR. If you want to h
 Wrapper offers special method `Neo4j::statistic()`. This method returns specific information from last executed query. 
 
 _Check method annotation for more information._
+
+## Support
+
+<a href='https://ko-fi.com/Z8Z5ABMLW' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
