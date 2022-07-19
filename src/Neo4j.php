@@ -34,7 +34,7 @@ class Neo4j
     public static int $port = 7687;
     public static float $timeout = 15;
 
-    private static AProtocol $protocol;
+    private static ?AProtocol $protocol = null;
     private static array $statistics;
 
     /**
@@ -43,7 +43,7 @@ class Neo4j
      */
     protected static function getProtocol(): AProtocol
     {
-        if (!(self::$protocol instanceof AProtocol)) {
+        if (is_null(self::$protocol)) {
             try {
                 if (strpos(self::$host, '+s://') > 0) {
                     $conn = new StreamSocket(self::$host, self::$port, self::$timeout);
