@@ -1,0 +1,33 @@
+{
+    "name": "stefanak-michal/neo4j-bolt-wrapper",
+    "description": "Wrapper for Neo4j PHP Bolt library to simplify usage.",
+    "keywords": ["neo4j", "bolt", "socket", "database"],
+    "homepage": "https://github.com/stefanak-michal/neo4j-bolt-wrapper",
+    "type": "library",
+    "readme": "README.md",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.4",
+        "stefanak-michal/bolt": "^4.1"
+    },
+    "support": {
+        "source": "https://github.com/stefanak-michal/neo4j-bolt-wrapper"
+    },
+    "funding": [
+        {
+            "type": "ko-fi",
+            "url": "https://ko-fi.com/michalstefanak"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Michal Stefanak",
+            "role": "Developer",
+            "homepage": "https://www.linkedin.com/in/michalstefanak/"
+        }
+    ],
+    "autoload": {
+        "files": ["src/Neo4j.php"]
+    }
+}
