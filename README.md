@@ -2,6 +2,14 @@
 
 This library contains wrapper class to cover basic functionality with [Bolt library](https://github.com/neo4j-php/Bolt).
 
+## Instalation
+
+Run the following command in your project to install the latest applicable version of the package:
+
+`composer require stefanak-michal/neo4j-bolt-wrapper`
+
+[Packagist](https://packagist.org/packages/stefanak-michal/neo4j-bolt-wrapper)
+
 ## Usage
 
 ```php
