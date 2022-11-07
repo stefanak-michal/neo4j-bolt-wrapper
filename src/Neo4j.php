@@ -2,7 +2,7 @@
 
 use Bolt\Bolt;
 use Bolt\connection\{Socket, StreamSocket};
-use Bolt\protocol\AProtocol;
+use Bolt\protocol\{AProtocol, Response};
 
 /**
  * Class for Neo4j bolt driver
@@ -75,16 +75,28 @@ class Neo4j
 
     /**
      * Return full output
+     * @link https://www.neo4j.com/docs/bolt/current/bolt/message/#messages-run
      * @param string $query
      * @param array $params
+     * @param array $extra
      * @return array
      */
-    public static function query(string $query, array $params = []): array
+    public static function query(string $query, array $params = [], array $extra = []): array
     {
         $run = $all = null;
         try {
-            $run = self::getProtocol()->run($query, $params);
-            $all = self::getProtocol()->pull();
+            $runResponse = self::getProtocol()->run($query, $params, $extra)->getResponse();
+            if ($runResponse->getSignature() != Response::SIGNATURE_SUCCESS) {
+                throw new Exception(implode(' ', $runResponse->getContent()));
+            }
+            $run = $runResponse->getContent();
+
+            foreach (self::getProtocol()->pull()->getResponses() as $response) {
+                if ($response->getSignature() == Response::SIGNATURE_IGNORED || $response->getSignature() == Response::SIGNATURE_FAILURE) {
+                    throw new Exception(implode(' ', $runResponse->getContent()));
+                }
+                $all[] = $response->getContent();
+            }
         } catch (Exception $e) {
             self::handleException($e);
         }
@@ -106,11 +118,12 @@ class Neo4j
      * Get first value from first row
      * @param string $query
      * @param array $params
+     * @param array $extra
      * @return mixed
      */
-    public static function queryFirstField(string $query, array $params = [])
+    public static function queryFirstField(string $query, array $params = [], array $extra = [])
     {
-        $data = self::query($query, $params);
+        $data = self::query($query, $params, $extra);
         if (empty($data)) {
             return null;
         }
@@ -121,11 +134,12 @@ class Neo4j
      * Get first values from all rows
      * @param string $query
      * @param array $params
+     * @param array $extra
      * @return array
      */
-    public static function queryFirstColumn(string $query, array $params = []): array
+    public static function queryFirstColumn(string $query, array $params = [], array $extra = []): array
     {
-        $data = self::query($query, $params);
+        $data = self::query($query, $params, $extra);
         if (empty($data)) {
             return [];
         }
@@ -137,12 +151,14 @@ class Neo4j
 
     /**
      * Begin transaction
+     * @link https://www.neo4j.com/docs/bolt/current/bolt/message/#messages-begin
+     * @param array $extra
      * @return bool
      */
-    public static function begin(): bool
+    public static function begin(array $extra = []): bool
     {
         try {
-            self::getProtocol()->begin();
+            self::getProtocol()->begin($extra);
             if (is_callable(self::$logHandler)) {
                 call_user_func(self::$logHandler, 'BEGIN TRANSACTION');
             }
@@ -155,6 +171,7 @@ class Neo4j
 
     /**
      * Commit transaction
+     * @link https://www.neo4j.com/docs/bolt/current/bolt/message/#messages-commit
      * @return bool
      */
     public static function commit(): bool
@@ -173,6 +190,7 @@ class Neo4j
 
     /**
      * Rollback transaction
+     * @link https://www.neo4j.com/docs/bolt/current/bolt/message/#messages-rollback
      * @return bool
      */
     public static function rollback(): bool
