@@ -99,6 +99,7 @@ class Neo4j
             }
         } catch (Exception $e) {
             self::handleException($e);
+            return [];
         }
         $last = array_pop($all);
 
@@ -158,7 +159,10 @@ class Neo4j
     public static function begin(array $extra = []): bool
     {
         try {
-            self::getProtocol()->begin($extra);
+            $response = self::getProtocol()->begin($extra)->getResponse();
+            if ($response->getSignature() != Response::SIGNATURE_SUCCESS) {
+                throw new Exception(implode(' ', $response->getContent()));
+            }
             if (is_callable(self::$logHandler)) {
                 call_user_func(self::$logHandler, 'BEGIN TRANSACTION');
             }
@@ -177,7 +181,10 @@ class Neo4j
     public static function commit(): bool
     {
         try {
-            self::getProtocol()->commit();
+            $response = self::getProtocol()->commit()->getResponse();
+            if ($response->getSignature() != Response::SIGNATURE_SUCCESS) {
+                throw new Exception(implode(' ', $response->getContent()));
+            }
             if (is_callable(self::$logHandler)) {
                 call_user_func(self::$logHandler, 'COMMIT TRANSACTION');
             }
@@ -196,7 +203,10 @@ class Neo4j
     public static function rollback(): bool
     {
         try {
-            self::getProtocol()->rollback();
+            $response = self::getProtocol()->rollback()->getResponse();
+            if ($response->getSignature() != Response::SIGNATURE_SUCCESS) {
+                throw new Exception(implode(' ', $response->getContent()));
+            }
             if (is_callable(self::$logHandler)) {
                 call_user_func(self::$logHandler, 'ROLLBACK TRANSACTION');
             }
