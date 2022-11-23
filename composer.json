@@ -1,6 +1,6 @@
 {
     "name": "stefanak-michal/neo4j-bolt-wrapper",
-    "description": "Wrapper for Neo4j PHP Bolt library to simplify usage.",
+    "description": "Wrapper for Neo4j over PHP Bolt library to simplify usage.",
     "keywords": ["neo4j", "bolt", "socket", "database"],
     "homepage": "https://github.com/stefanak-michal/neo4j-bolt-wrapper",
     "type": "library",
