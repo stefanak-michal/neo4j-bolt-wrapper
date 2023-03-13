@@ -26,7 +26,6 @@ class Neo4j
 
     /**
      * Set your authentification
-     * @see \Bolt\helpers\Auth
      */
     public static array $auth;
 
@@ -56,7 +55,12 @@ class Neo4j
 
                 $bolt = new Bolt($conn);
                 self::$protocol = $bolt->build();
-                self::$protocol->hello(self::$auth);
+                if (version_compare(self::$protocol->getVersion(), '5.1', '<')) {
+                    self::$protocol->hello(self::$auth);
+                } else {
+                    self::$protocol->hello();
+                    self::$protocol->logon(self::$auth);
+                }
 
                 register_shutdown_function(function () {
                     try {
