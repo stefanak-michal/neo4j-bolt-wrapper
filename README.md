@@ -13,7 +13,7 @@ Run the following command in your project to install the latest applicable versi
 ## Usage
 
 ```php
-Neo4j::$auth = \Bolt\helpers\Auth::basic('username', 'password');
+Neo4j::$auth = ['scheme' => 'basic', 'principal' => 'neo4j', 'credentials' => 'password'];
 $rows = Neo4j::query('RETURN $n as num', ['n' => 123]);
 ```
 
@@ -58,4 +58,4 @@ _Check method annotation for more information._
 
 ## Support
 
-<a href='https://ko-fi.com/Z8Z5ABMLW' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z5ABMLW)
