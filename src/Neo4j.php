@@ -3,6 +3,7 @@
 use Bolt\Bolt;
 use Bolt\connection\{Socket, StreamSocket};
 use Bolt\protocol\{AProtocol, Response};
+use Bolt\enum\Signature;
 
 /**
  * Class for Neo4j bolt driver
@@ -25,13 +26,24 @@ class Neo4j
     public static $errorHandler;
 
     /**
-     * Set your authentification
+     * Set your credentials
+     * @link https://github.com/neo4j-php/Bolt?tab=readme-ov-file#authentication
      */
-    public static array $auth;
+    public static array $auth = ['scheme' => 'none'];
 
+    /**
+     * @var string URI for connection
+     */
     public static string $host = '127.0.0.1';
+    /**
+     * @var int Port for connection
+     */
     public static int $port = 7687;
     public static float $timeout = 15;
+    /**
+     * @var float|null Requested specific bolt version
+     */
+    public static ?float $boltVersion = null;
 
     private static ?AProtocol $protocol = null;
     private static array $statistics;
@@ -54,19 +66,22 @@ class Neo4j
                 }
 
                 $bolt = new Bolt($conn);
+                if (self::$boltVersion !== null) {
+                    $bolt->setProtocolVersions(self::$boltVersion);
+                }
                 self::$protocol = $bolt->build();
                 if (version_compare(self::$protocol->getVersion(), '5.1', '<')) {
-                    self::$protocol->hello(self::$auth);
+                    self::$protocol->hello(self::$auth)->getResponse();
                 } else {
-                    self::$protocol->hello();
-                    self::$protocol->logon(self::$auth);
+                    self::$protocol->hello()->getResponse();
+                    self::$protocol->logon(self::$auth)->getResponse();
                 }
 
                 register_shutdown_function(function () {
                     try {
                         if (method_exists(self::$protocol, 'goodbye'))
                             self::$protocol->goodbye();
-                    } catch (Exception $e) {
+                    } catch (Exception) {
                     }
                 });
             } catch (Exception $e) {
@@ -89,17 +104,19 @@ class Neo4j
     {
         $run = $all = null;
         try {
+            /** @var Response $runResponse */
             $runResponse = self::getProtocol()->run($query, $params, $extra)->getResponse();
-            if ($runResponse->getSignature() != Response::SIGNATURE_SUCCESS) {
-                throw new Exception(implode(' ', $runResponse->getContent()));
+            if ($runResponse->signature != Signature::SUCCESS) {
+                throw new Exception(implode(' ', $runResponse->content));
             }
-            $run = $runResponse->getContent();
+            $run = $runResponse->content;
 
+            /** @var Response $response */
             foreach (self::getProtocol()->pull()->getResponses() as $response) {
-                if ($response->getSignature() == Response::SIGNATURE_IGNORED || $response->getSignature() == Response::SIGNATURE_FAILURE) {
-                    throw new Exception(implode(' ', $runResponse->getContent()));
+                if ($response->signature == Signature::IGNORED || $response->signature == Signature::FAILURE) {
+                    throw new Exception(implode(' ', $runResponse->content));
                 }
-                $all[] = $response->getContent();
+                $all[] = $response->content;
             }
         } catch (Exception $e) {
             self::handleException($e);
@@ -163,9 +180,10 @@ class Neo4j
     public static function begin(array $extra = []): bool
     {
         try {
+            /** @var Response $response */
             $response = self::getProtocol()->begin($extra)->getResponse();
-            if ($response->getSignature() != Response::SIGNATURE_SUCCESS) {
-                throw new Exception(implode(' ', $response->getContent()));
+            if ($response->signature != Signature::SUCCESS) {
+                throw new Exception(implode(' ', $response->content));
             }
             if (is_callable(self::$logHandler)) {
                 call_user_func(self::$logHandler, 'BEGIN TRANSACTION');
@@ -185,9 +203,10 @@ class Neo4j
     public static function commit(): bool
     {
         try {
+            /** @var Response $response */
             $response = self::getProtocol()->commit()->getResponse();
-            if ($response->getSignature() != Response::SIGNATURE_SUCCESS) {
-                throw new Exception(implode(' ', $response->getContent()));
+            if ($response->signature != Signature::SUCCESS) {
+                throw new Exception(implode(' ', $response->content));
             }
             if (is_callable(self::$logHandler)) {
                 call_user_func(self::$logHandler, 'COMMIT TRANSACTION');
@@ -207,9 +226,10 @@ class Neo4j
     public static function rollback(): bool
     {
         try {
+            /** @var Response $response */
             $response = self::getProtocol()->rollback()->getResponse();
-            if ($response->getSignature() != Response::SIGNATURE_SUCCESS) {
-                throw new Exception(implode(' ', $response->getContent()));
+            if ($response->signature != Signature::SUCCESS) {
+                throw new Exception(implode(' ', $response->content));
             }
             if (is_callable(self::$logHandler)) {
                 call_user_func(self::$logHandler, 'ROLLBACK TRANSACTION');
