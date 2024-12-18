@@ -250,7 +250,7 @@ class Neo4j
      * nodes-deleted
      * properties-set
      * relationships-created
-     * relationship-deleted
+     * relationships-deleted
      * labels-added
      * labels-removed
      * indexes-added
